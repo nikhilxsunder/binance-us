@@ -1462,8 +1462,7 @@ class BinanceRestAPI:
             data['recvWindow'] = recv_window
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-    def all_orders(self):
-        pass
+    #def all_orders(self):
     ### OCO Orders
     #def create_new_oco_order(self):
     #def get_oco_order(self):
