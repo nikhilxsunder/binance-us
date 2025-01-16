@@ -782,12 +782,12 @@ class BinanceRestAPI:
             https://github.com/binance-us/binance-us-api-docs/blob/master/faqs/trailing-stop-faq.md
         icebergQty : dec
             Used with LIMIT, STOP_LOSS_LIMIT, and TAKE_PROFIT_LIMIT to create an iceberg order.
-        self_trade_prevention_maker : enum
+        self_trade_prevention_mode : enum
             The configured default mode is EXPIRE_MAKER. The supported values currently are 
             EXPIRE_TAKER, EXPIRE_MAKER, EXPIRE_BOTH.
         new_order_resp_type : enum
             Set the response JSON. ACK, RESULT, or FULL; MARKET and LIMIT order types default to 
-            FULL; all other orders default to ACK.
+            FULL; all other orders default to ACK.       
         recvWindow : long
             The value cannot be greater than 60000.
         timestamp: long
@@ -1462,32 +1462,635 @@ class BinanceRestAPI:
             data['recvWindow'] = recv_window
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-    #def all_orders(self):
+    def all_orders(self, symbol, order_id=None, start_time=None, end_time=None, limit=None,
+                   recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Get all account orders: active, canceled, or filled.
+
+        Notes
+        ----------
+        If order_id is set, it will get orders >= that order_id. Otherwise, most recent orders 
+        are returned.
+        For some historical orders cummulativeQuoteQty will be < 0, meaning the data is not 
+        available at this time.
+        If start_time and/or end_time provided, order_id is not required.
+
+        Parameters
+        ----------
+        symbol : str
+            Ticker ID to get data from.
+        order_id : long, optional
+            Identifier of specific order.
+        start_time : long, optional
+            Timestamp in ms to get orders from INCLUSIVE.
+        end_time : long, optional
+            Timestamp in ms to get orders until INCLUSIVE.
+        limit : int, optional
+            Default 500; max 1000.
+        recv_window : long, optional
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/allOrders'
+        data = {
+            'symbol': symbol,
+            'timestamp': timestamp
+        }
+        if order_id:
+            data['orderId'] = order_id
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ### OCO Orders
-    #def create_new_oco_order(self):
-    #def get_oco_order(self):
-    #def get_all_oco_order(self):
-    #def get_open_oco_orders(self):
-    #def cancel_oco_order(self):
+    def create_new_oco_order(self, symbol, side, quantity, price, stop_price, stop_limit_price=None,
+                             limit_client_order_id=None, stop_client_order_id=None,
+                             list_client_order_id=None, limit_iceberg_qty=None,
+                             stop_iceberg_qty=None, stop_limit_time_in_force=None,
+                             new_order_resp_type=None, self_trade_prevention_mode=None,
+                             recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to create a new OCO (One Cancels the Other) order.
+
+        Parameters
+        ----------
+        symbol : str
+            Order trading pair (e.g., BTCUSD, ETHUSD).
+        side : enum
+            Order side (e.g., BUY, SELL).
+        quantity : decimal
+            Order quantity.
+        price : decimal
+            Order price.
+        stop_price : decimal
+            Stop price.
+        stop_limit_price : decimal
+            Stop limit price.
+        limit_client_order_id : str
+            A unique ID for the limit order.
+        stop_client_order_id : str
+            A unique ID for the stop loss/stop loss limit leg.
+        list_client_order_id : str
+            A unique ID for the entire orderList.
+        limit_iceberg_qty : decimal
+            Iceberg quantity for the limit order.
+        stop_iceberg_qty : decimal
+            Iceberg quantity for the stop order.
+        stop_limit_time_in_force : enum
+            Valid values are GTC/FOK/IOC
+        new_order_resp_type : enum
+            Set the response JSON. ACK, RESULT, or FULL.
+        self_trade_prevention_mode : enum
+            The configured default mode is EXPIRE_MAKER. The supported values currently are 
+            EXPIRE_TAKER, EXPIRE_MAKER, EXPIRE_BOTH.
+        recv_window : long, optional
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/order/oco'
+        data = {
+            'symbol': symbol,
+            'side': side,
+            'quantity': quantity,
+            'price': price,
+            'stopPrice': stop_price,
+            'timestamp': timestamp
+        }
+        if stop_limit_price:
+            data['stopLimitPrice'] = stop_limit_price
+        if limit_client_order_id:
+            data['limitClientOrderId'] = limit_client_order_id
+        if stop_client_order_id:
+            data['stopClientOrderId'] = stop_client_order_id
+        if list_client_order_id:
+            data['listClientOrderId'] = list_client_order_id
+        if limit_iceberg_qty:
+            data['limitIcebergQty'] = limit_iceberg_qty
+        if stop_iceberg_qty:
+            data['stopIcebergQty'] = stop_iceberg_qty
+        if stop_limit_time_in_force:
+            data['stopLimitTimeInForce'] = stop_limit_time_in_force
+        if new_order_resp_type:
+            data['newOrderRespType'] = new_order_resp_type
+        if self_trade_prevention_mode:
+            data['selfTradePreventionMode'] = self_trade_prevention_mode
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def get_oco_order(self, order_list_id=None, list_client_order_id=None, recv_window=None,
+                      timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get an OCO order's status.
+
+        Parameters
+        ----------
+        symbol : str
+            Order trading pair (e.g., BTCUSD, ETHUSD).
+        order_list_id : long
+            Either order_list_id or list_client_order_id must be provided
+        list_client_order_id : str
+            Either order_list_id or list_client_order_id must be provided
+        recv_window : long
+            The value cannot be greater than 60000
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/orderList'
+        data = {
+            'timestamp': timestamp
+        }
+        if not order_list_id and not list_client_order_id:
+            raise ValueError("Either 'order_list_id' or 'list_client_order_id' must be provided.")
+        if order_list_id:
+            data['orderListId'] = order_list_id
+        if list_client_order_id:
+            data['origClientOrderId'] = list_client_order_id
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_all_oco_order(self, from_id=None, start_time=None, end_time=None, limit=None,
+                          recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get all OCO orders.
+
+        Parameters
+        ----------
+        from_id : long
+            Start with the order list ID.
+        start_time : long
+            Timestamp in ms to get orders from INCLUSIVE.
+        end_time : long
+            Timestamp in ms to get orders until INCLUSIVE.
+        limit : int
+            Default 500; max 1000.
+        recv_window : long
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/allOrderList'
+        data = {
+            'timestamp': timestamp
+        }
+        if from_id:
+            data['fromId'] = from_id
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_open_oco_orders(self, recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get all open OCO orders.
+
+        Parameters
+        ----------
+        recv_window : long
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/openOrderList'
+        data = {
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def cancel_oco_order(self, symbol, order_list_id=None, list_client_order_id=None,
+                         new_client_order_id=None, recv_window=None,
+                         timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to cancel an active OCO order.
+
+        Parameters
+        ----------
+        symbol : str
+            Order trading pair (e.g., BTCUSD, ETHUSD).
+        order_list_id : long
+            Either orderListId or listClientOrderId must be provided.
+        list_client_order_id : str
+            Either orderListId or listClientOrderId must be provided.
+        new_client_order_id : str
+            Used to uniquely identify this cancel. Automatically generated by default.
+            For API Partner Program members: In order to receive rebates the newClientOrderId 
+            parameter must begin with your Partner ID, followed by a dash symbol, when calling 
+            order placement endpoints. For example: “ABCD1234-…”.
+        recv_window : long
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/api/v3/orderList'
+        data = {
+            'symbol': symbol,
+            'timestamp': timestamp
+        }
+        if order_list_id:
+            data['orderListId'] = order_list_id
+        if list_client_order_id:
+            data['listClientOrderId'] = list_client_order_id
+        if new_client_order_id:
+            data['newClientOrderId'] = new_client_order_id
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_delete_request(url_endpoint, data)
+        return f"DELETE {url_endpoint}: {result}"
     ## OTC Endpoints
-    #def get_supported_coin_pairs(self):
-    #def request_for_quote(self):
-    #def place_otc_trade_order(self):
-    #def get_otc_trade_order(self):
-    #def get_all_otc_trade_orders(self):
-    #def get_all_ocbs_trade_orders(self):
+    def get_supported_coin_pairs(self, from_coin=None, to_coin=None,
+                                 timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the list of supported coin pairs for OTC trading.
+
+        Parameters
+        ----------
+        from_coin : str
+            From coin name, e.g. BTC, SHIB.
+        to_coin : str
+            To coin name, e.g. USDT, KSHIB.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/otc/coinPairs'
+        data = {
+            'timestamp': timestamp
+        }
+        if from_coin:
+            data['fromCoin'] = from_coin
+        if to_coin:
+            data['toCoin'] = to_coin
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def request_for_quote(self, from_coin, to_coin, request_coin, request_amount,
+                          timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to request a quote for an OTC trade.
+
+        Parameters
+        ----------
+        from_coin : str
+            From coin name, e.g. SHIB
+        to_coin : str
+            To coin name, e.g. KSHIB
+        request_coin : decimal
+            Request coin name, e.g. SHIB
+        request_amount : str
+            Amount of request coin, e.g. 50000
+        timestamp : long
+            Timestamp for request.
+
+        """
+        url_endpoint = '/sapi/v1/otc/quotes'
+        data = {
+            'fromCoin': from_coin,
+            'toCoin': to_coin,
+            'requestCoin': request_coin,
+            'requestAmount': request_amount,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def place_otc_trade_order(self, quote_id, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to place an OTC trade order.
+
+        Parameters
+        ----------
+        quote_id : str
+            The quote ID for the trade.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/otc/orders'
+        data = {
+            'quoteId': quote_id,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def get_otc_trade_order(self, order_id, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the details of an OTC trade order.
+
+        Parameters
+        ----------
+        order_id : str
+            The order ID for the trade.
+        timestamp : long
+            Timestamp for request.
+
+        """
+        url_endpoint = f'/sapi/v1/otc/orders/{order_id}'
+        data = {
+            'orderId': order_id,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_all_otc_trade_orders(self, from_coin=None, to_coin=None, start_time=None, end_time=None,
+                                 page=None, limit=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to query OTC trade orders by condition.
+
+        Parameters
+        ----------
+        from_coin : str
+            The coin to trade from.
+        to_coin : str
+            The coin to trade to.
+        start_time : long
+            Timestamp in ms to get orders from INCLUSIVE.
+        end_time : long
+            Timestamp in ms to get orders until INCLUSIVE.
+        page : int
+            Set the number of pages, depending on the number of records and the record limit 
+            for each page. No maximum value of pages.
+        limit : int
+            Number of records per page. Default: 10, Max: 100.
+        timestamp : int
+            Timestamp in ms for the request. Defaults to current time in ms.
+        """
+        url_endpoint = '/sapi/v1/otc/allOrders'
+        data = {
+            'timestamp': timestamp
+        }
+        if from_coin:
+            data['fromCoin'] = from_coin
+        if to_coin:
+            data['toCoin'] = to_coin
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if page:
+            data['page'] = page
+        if limit:
+            data['limit'] = limit
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_all_ocbs_trade_orders(self, order_id=None, start_time=None, end_time=None, page=None,
+                                  limit=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get all OCBS trade orders.
+
+        Parameters
+        ----------
+        order_id : str
+            Order ID
+        start_time : long
+            Timestamp in ms to get orders from INCLUSIVE.
+        end_time : long
+            Timestamp in ms to get orders until INCLUSIVE.
+        page : int
+            Set the number of pages, depending on the number of records and the record 
+            limit for each page. No maximum value of pages.
+        limit : int
+            Number of records per page. Default: 10, Max: 100.
+        timestamp : long
+            Timestamp in ms for the request. Defaults to current time in ms.
+        """
+        url_endpoint = '/sapi/v1/ocbs/orders'
+        data = {
+            'timestamp': timestamp
+        }
+        if order_id:
+            data['orderId'] = order_id
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if page:
+            data['page'] = page
+        if limit:
+            data['limit'] = limit
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ## Wallet Endpoints
     ### Asset Fees & Wallet Status
-    #def _get_asset_fees_and_wallet_status(self):
+    def get_asset_fees_and_wallet_status(self, recv_window=None,
+                                         timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to fetch the details of all crypto assets including fees, withdrawal 
+        limits, and network status.
+
+        Parameters
+        ----------
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp in ms for the request. Defaults to current time in ms.
+        """
+        url_endpoint = '/sapi/v1/capital/config/getall'
+        data = {
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ### Withdrawals
-    #def withdraw_fiat_via_bitgo(self):
-    #def withdraw_crypto(self):
-    #def get_crypto_withdrawal_history(self):
-    #def get_fiat_withdrawal_history(self):
+    def withdraw_fiat_via_bitgo(self, payment_method, payment_account, amount, fiat_currency=None,
+                                recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to withdraw fiat currency via BitGo.
+
+        Parameters
+        ----------
+        payment_method : str
+            The payment method to use for the withdrawal (e.g., bank transfer).
+        payment_account : str
+            The account to withdraw to.
+        amount : decimal
+            The amount to withdraw.
+        fiat_currency : str, optional
+            The fiat currency to withdraw (e.g., USD). If not provided, the default currency 
+            will be used.
+        recv_window : long, optional
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/fiatpayment/withdraw/apply'
+        data = {
+            'paymentMethod': payment_method,
+            'paymentAccount': payment_account,
+            'amount': amount,
+            'timestamp': timestamp
+        }
+        if fiat_currency:
+            data['fiatCurrency'] = fiat_currency
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def withdraw_crypto(self, coin, network, address, amount, withdraw_order_id=None,
+                        address_tag=None, recv_window=None,
+                        timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to withdraw cryptocurrency.
+
+        Parameters
+        ----------
+        coin : str
+            The cryptocurrency to withdraw (e.g., BTC, ETH).
+        network : str
+            Specify the withdrawal network (e.g. 'ERC20' or 'BEP20'). Please ensure the address 
+            type is correct for the chosen network.
+        withdraw_order_id : str
+            Client ID for withdraw.
+        address : str
+            The address to withdraw to.
+        address_tag : str
+            Memo: Acts as a secondary address identifier for coins like XRP, XMR etc.
+        amount : decimal
+            The amount to withdraw.
+        recv_window : long, optional
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/capital/withdraw/apply'
+        data = {
+            'coin': coin,
+            'network': network,
+            'address': address,
+            'addressTag': address_tag,
+            'amount': amount,
+            'timestamp': timestamp
+        }
+        if withdraw_order_id:
+            data['withdrawOrderId'] = withdraw_order_id
+        if address_tag:
+            data['addressTag'] = address_tag
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def get_crypto_withdrawal_history(self, coin, withdraw_order_id=None, status=None,
+                                      start_time=None, end_time=None, offset=None, limit=None,
+                                      recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the history of cryptocurrency withdrawals.
+
+        Parameters
+        ----------
+        coin : str
+            The coin to get the history for.
+        withdraw_order_id : str
+            Client ID for withdraw
+        status : int
+            0: email sent, 1: canceled, 2: awaiting approval, 3: rejected, 4: processing,
+            5: failure, 6: completed
+        start_time : long
+            Default: 90 days from current timestamp
+        end_time : long
+            Default: present timestamp
+        offset : int
+            Default: 0
+        limit : int
+            Default: 1000, max: 1000
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/capital/withdraw/history'
+        data = {
+            'coin': coin,
+            'timestamp': timestamp
+        }
+        if withdraw_order_id:
+            data['withdrawOrderId'] = withdraw_order_id
+        if status:
+            data['status'] = status
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if offset:
+            data['offset'] = offset
+        if limit:
+            data['limit'] = limit
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_fiat_withdrawal_history(self, fiat_currency=None, order_id=None, offset=None,
+                                    payment_channel=None, payment_method=None, start_time=None,
+                                    end_time=None, recv_window=None,
+                                    timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the history of fiat withdrawals.
+
+        Notes
+        ----------
+        Please pay attention to the default value of startTime and endTime.
+        If both startTime and endTime are sent, the duration between startTime and endTime must 
+        be greater than 0 day and less than 90 days.
+
+        Parameters
+        ----------
+        fiat_currency : str, optional
+            The fiat currency to filter the withdrawal history (e.g., USD).
+        order_id : str, optional
+            The order ID to filter the withdrawal history.
+        offset : int, optional
+            The offset for pagination.
+        payment_channel : str, optional
+            The payment channel used for the withdrawal.
+        payment_method : str, optional
+            The payment method used for the withdrawal.
+        start_time : long, optional
+            Default to 90 days from current timestamp.
+        end_time : long, optional
+            Default to current timestamp
+        recv_window : long, optional
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/fiatpayment/query/withdraw/history'
+        data = {
+            'timestamp': timestamp
+        }
+        if fiat_currency:
+            data['fiatCurrency'] = fiat_currency
+        if order_id:
+            data['orderId'] = order_id
+        if offset:
+            data['offset'] = offset
+        if payment_channel:
+            data['paymentChannel'] = payment_channel
+        if payment_method:
+            data['paymentMethod'] = payment_method
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ### Deposits
-    #def get_crypto_deposit_address(self):
-    #def get_crypto_deposit_history(self):
-    #def get_fiat_deposit_history(self):
+    #def get_crypto_deposit_address():
+    #def get_crypto_deposit_history():
+    #def get_fiat_deposit_history():
     #def get_sub_account_depsoit_address(self):
     #def get_sub_account_deposit_history(self):
     ## Convert Dust
@@ -1503,9 +2106,17 @@ class BinanceRestAPI:
     #def get_staking_balance(self):
     #def get_staking_history(self):
     #def get_staking_rewards_history(self):
+    ## Credit Line Endpoints
+    #def get_credt_line_account_information(self):
+    #def get_alert_history(self):
+    #def get_transfer_history(self):
+    #def execute_transfer(self):
+    ## API Partner Endpoints
+    #def check_user_eligibility(self):
+    #def get_rebate_history(self):
     #class Custodial:
         #Dunder Methods
-        #def __init__(self, api_key, secret_key):
+        #def __init__(self):
         #Private Methods
         #Public Methods
         ## Custodial Solution Endpoints

@@ -1,5 +1,5 @@
 # Binance US: A simple package for connecting to the Binance US API.
-## Still in beta missing items will be added soon.
+## This package is still in beta please try it out and please report any comments, concerns, and issues.
 
 [![Build and test GitHub](https://github.com/nikhilxsunder/binance_us/actions/workflows/main.yml/badge.svg)](https://github.com/nikhilxsunder/binance_us/actions)
 [![PyPI version](https://img.shields.io/pypi/v/binance_us.svg)](https://pypi.org/project/binance_us/)
@@ -13,7 +13,10 @@ You can install the package using pip:
 pip install binance_us
 ```
 
-### Usage
+### Rest API Usage
+
+I reccomend consulting the offical Binance US API documentation at: 
+https://docs.binance.us/
 
 Here is a simple example of how to use the package:
 
@@ -36,38 +39,29 @@ print(recent_trades)
 ### Features
 
 - Get exchange information
-- Get recent trades
-- Get historical trades
-- Get aggregate trades
-- Get order book depth
-- Get candlestick data
-- Get live ticker price
-- Get average price
-- Get best order book price
-- Get 24h price change statistics
-- Get rolling window price change statistics
-- Get user account information
-- Get user account status
-- Get user API trading status
-- Get asset distribution history
-- Get trade fee
-- Get past 30d trade volume
-- Get sub-account information
-- Get sub-account transfer history
-- Execute sub-account transfer
-- Get sub-account assets
-- Get master accounts total USD value
-- Get sub-account status
-- Get order rate limits
-- Create new order
-- Test new order
-- Get order
-- Get all open orders
-- Cancel order
-- Cancel open orders for symbol
-- Get trades
-- Replace order
-- Query prevented matches
+- Get market data
+- Interact with most Binance US API v3 endpoints (More endpoints coming soon)
+- Post trades and orders
+- etc.
+
+## Next Update 
+
+- More Rest API endpoints
+    - Deposits
+    - Convert Dust
+    - Referrals
+    - Staking
+    - Credit Line
+    - API Partner
+
+
+### Planned Updates
+
+- Binance Websocket API class
+- Binance Websocket Streams class
+- Binance Rest API Custodial subclass
+- Output data to pandas or polars
+
 
 ### Contributing
 
