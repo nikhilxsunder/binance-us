@@ -81,6 +81,3 @@ LICENSE
 
  file for details.
 ```
-
-This `README.md` provides a comprehensive overview of your project, including installation instructions, usage examples, a list of features, and information on contributing and licensing.
-This `README.md` provides a comprehensive overview of your project, including installation instructions, usage examples, a list of features, and information on contributing and licensing.
