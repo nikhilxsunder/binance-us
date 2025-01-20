@@ -1,4 +1,6 @@
-"""Binance US"""
+"""
+binance_us: A simple package for connecting to the Binance US API.
+"""
 #Imports
 import urllib.parse
 import hashlib
@@ -7,9 +9,11 @@ import time
 import requests
 
 class BinanceRestAPI:
-    """The BinanceRestAPI class contain methods for interacting with the Binance US REST API v3."""
+    """
+    The BinanceRestAPI class contain methods for interacting with the Binance US REST API v3.
+    """
     # Dunder Methods
-    def __init__(self, api_key, secret_key):
+    def __init__(self, api_key=None, secret_key=None):
         """
         Initialize the BinanceRestAPI class that provides functions which query 
         Binance US market data. an API key is not needed for market data requests but 
@@ -42,9 +46,10 @@ class BinanceRestAPI:
         params={
             **data,
             "signature": signature,
-            }
+        }
         req = requests.get((self.base_url + url_endpoint), params=params, headers=headers,
                            timeout=10)
+        req.raise_for_status()
         return req.text
     def __binanceus_post_request(self, url_endpoint, data):
         if not self.api_key or not self.secret_key:
@@ -55,9 +60,10 @@ class BinanceRestAPI:
         payload={
             **data,
             "signature": signature,
-            }
+        }
         req = requests.get((self.base_url + url_endpoint), params=payload, headers=headers,
                            timeout=10)
+        req.raise_for_status()
         return req.text
     def __binanceus_delete_request(self, url_endpoint, data):
         if not self.api_key or not self.secret_key:
@@ -68,9 +74,10 @@ class BinanceRestAPI:
         params={
             **data,
             "signature": signature,
-            }
+        }
         req = requests.delete((self.base_url + url_endpoint), params=params, headers=headers,
                             timeout=10)
+        req.raise_for_status()
         return req.text
     # Public Methods
     ## General Data Endpoints
@@ -2088,32 +2095,344 @@ class BinanceRestAPI:
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
     ### Deposits
-    #def get_crypto_deposit_address():
-    #def get_crypto_deposit_history():
-    #def get_fiat_deposit_history():
-    #def get_sub_account_depsoit_address(self):
-    #def get_sub_account_deposit_history(self):
+    def get_crypto_deposit_address(self, coin, network=None, recv_window=None,
+                                   timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to fetch a deposit address for a particular crypto asset.
+
+        Parameters
+        ----------
+        coin : str
+            The coin to get the history for.
+        network : str
+            Specify the deposit network (e.g. 'ERC20' or 'BEP20'). Please ensure the address 
+            type is correct for the chosen network.
+        recv_window : long, optional
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = "/sapi/v1/capital/deposit/address"
+        data = {
+            'coin': coin,
+            'timestamp': timestamp
+        }
+        if network:
+            data['network'] = network
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_crypto_deposit_history(self, coin, status=None, start_time=None, end_time=None,
+                                   offset=None, limit=None, recv_window=None,
+                                   timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to fetch your fiat (USD) deposit history.
+
+        Notes
+        ----------
+        Please pay attention to the default value of startTime and endTime.
+        If both startTime and endTime are sent, the duration between startTime and endTime 
+        must be greater than 0 day and less than 90 days.
+
+        Parameters
+        ----------
+        coin : str
+            The coin to get the history for.
+        status : int, optional
+            0: pending, 6: credited but cannot withdraw, 1: success.
+        start_time : long, optional
+            Default: 90 days from current timestamp.
+        end_time : long, optional
+            Default to current timestamp
+        offset : int, optional
+            Default: 0.
+        limit : int, optional
+            Default: 1000, max: 1000.
+        recv_window : long, optional
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
+        url_endpoint = '/sapi/v1/capital/deposit/hisrec'
+        data = {
+            'coin': coin,
+            'timestamp': timestamp
+        }
+        if status:
+            data['status'] = status
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if offset:
+            data['offset'] = offset
+        if limit:
+            data['limit'] = limit
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_fiat_deposit_history(self, fiat_currency=None, order_id=None, offset=None,
+                                 payment_channel=None, payment_method=None, start_time=None,
+                                 end_time=None, recv_window=None,
+                                 timestamp=int(round(time.time() * 1000)) ):
+        url_endpoint = '/sapi/v1/fiatpayment/query/deposit/history'
+        data = {
+            'timestamp': timestamp
+        }
+        if fiat_currency:
+            data['fiatCurrency'] = fiat_currency
+        if order_id:
+            data['orderId'] = order_id
+        if offset:
+            data['offset'] = offset
+        if payment_channel:
+            data['paymentChannel'] = payment_channel
+        if payment_method:
+            data['paymentMethod'] = payment_method
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_sub_account_depsoit_address(self, email, coin, network=None,
+                                        timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/capital/sub-account/deposit/Address"
+        data = {
+            'email': email,
+            'coin': coin,
+            'timestamp': timestamp
+        }
+        if network:
+            data['network'] = network
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_sub_account_deposit_history(self, email, coin=None, status=None, start_time=None,
+                                        end_time=None, limit=None, offset=None,
+                                        timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/capital/sub-account/deposit/history"
+        data = {
+            'email': email,
+            'timestamp': timestamp
+        }
+        if coin:
+            data['coin'] = coin
+        if status:
+            data['status'] = status
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if offset:
+            data['offset'] = offset
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ## Convert Dust
-    #def convert_dust(self):
-    #def get_convert_dust_history(self):
-    #def get_assets_that_can_be_converted(self):
+    def convert_dust(self, from_asset, to_asset, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/asset/dust"
+        data = {
+            'asset': from_asset,
+            'toAsset': to_asset,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def get_convert_dust_history(self, start_time, end_time,
+                                 timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/asset/dust-logs"
+        data = {
+            'startTime': start_time,
+            'endTime': end_time,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_assets_that_can_be_converted(self, to_asset, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/asset/dust-assets"
+        data = {
+            'toAsset': to_asset,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ## Referral Endpoints
-    #def get_referral_reward_history(self):
+    def get_referral_reward_history(self, user_biz_type, page, rows,
+                                    timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/marketing/referral/reward/history"
+        data = {
+            'userBizType': user_biz_type,
+            'page': page,
+            'rows': rows,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ## Staking Endpoints
-    #def get_staking_asset_information(self):
-    #def stake_asset(self):
-    #def unstake_asset(self):
-    #def get_staking_balance(self):
-    #def get_staking_history(self):
-    #def get_staking_rewards_history(self):
+    def get_staking_asset_information(self, get_staking_asset=None):
+        url_endpoint = "/sapi/v1/staking/asset"
+        data = {
+            'timestamp': int(round(time.time() * 1000))
+        }
+        if get_staking_asset:
+            data['asset'] = get_staking_asset
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def stake_asset(self, staking_asset, amount, auto_restake=None,
+                    timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/staking/stake"
+        data = {
+            'asset': staking_asset,
+            'amount': amount,
+            'timestamp': timestamp
+        }
+        if auto_restake is not None:
+            data['autoRestake'] = auto_restake
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def unstake_asset(self, staking_asset, amount, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/staking/unstake"
+        data = {
+            'asset': staking_asset,
+            'amount': amount,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
+    def get_staking_balance(self, asset, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/staking/stakingBalance"
+        data = {
+            'asset': asset,
+            'timestamp': timestamp
+        }
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_staking_history(self, asset=None, start_time=None, end_time=None, page=None, limit=None,
+                            timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/staking/history"
+        data = {
+            'timestamp': timestamp
+        }
+        if asset:
+            data['asset'] = asset
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if page:
+            data['page'] = page
+        if limit:
+            data['limit'] = limit
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_staking_rewards_history(self, asset=None, start_time=None, end_time=None, page=None,
+                                    limit=None, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/staking/stakingRewardsHistory"
+        data = {
+            'timestamp': timestamp
+        }
+        if asset:
+            data['asset'] = asset
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if page:
+            data['page'] = page
+        if limit:
+            data['limit'] = limit
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     ## Credit Line Endpoints
-    #def get_credt_line_account_information(self):
-    #def get_alert_history(self):
-    #def get_transfer_history(self):
-    #def execute_transfer(self):
+    def get_credt_line_account_information(self, recv_window=None,
+                                           timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v2/cl/account"
+        data = {
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_alert_history(self, recv_window=None, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v2/cl/alertHistory"
+        data = {
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_transfer_history(self, start_time=None, end_time=None, limit=None, transfer_type=None,
+                             asset=None, recv_window=None,
+                             timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v2/cl/transferHistory"
+        data = {
+            'timestamp': timestamp
+        }
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if transfer_type:
+            data['transferType'] = transfer_type
+        if asset:
+            data['asset'] = asset
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def execute_transfer(self, transfer_type, transfer_asset_type, quantity, recv_window=None,
+                         timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v2/cl/transfer"
+        data = {
+            'transferType': transfer_type,
+            'transferAssetType': transfer_asset_type,
+            'quantity': quantity,
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_post_request(url_endpoint, data)
+        return f"POST {url_endpoint}: {result}"
     ## API Partner Endpoints
-    #def check_user_eligibility(self):
-    #def get_rebate_history(self):
+    def check_user_eligibility(self, partner_id, recv_window=None,
+                               timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/apipartner/checkEligibility"
+        data = {
+            'partnerId': partner_id,
+            'timestamp': timestamp
+        }
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
+    def get_rebate_history(self, partner_id, start_time=None, end_time=None, limit=None, page=None,
+                           recv_window=None, timestamp=int(round(time.time() * 1000))):
+        url_endpoint = "/sapi/v1/apipartner/rebateHistory"
+        data = {
+            'partnerId': partner_id,
+            'timestamp': timestamp
+        }
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if page:
+            data['page'] = page
+        if recv_window:
+            data['recvWindow'] = recv_window
+        result = self.__binanceus_get_request(url_endpoint, data)
+        return f"GET {url_endpoint}: {result}"
     #class Custodial:
         #Dunder Methods
         #def __init__(self):

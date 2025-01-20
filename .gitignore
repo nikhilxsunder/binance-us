@@ -78,3 +78,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Other
+vscode/
+launch.json
+settings.json
