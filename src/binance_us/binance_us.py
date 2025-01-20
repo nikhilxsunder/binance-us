@@ -2177,6 +2177,36 @@ class BinanceRestAPI:
                                  payment_channel=None, payment_method=None, start_time=None,
                                  end_time=None, recv_window=None,
                                  timestamp=int(round(time.time() * 1000)) ):
+        """
+        Use this endpoint to fetch your fiat (USD) deposit history.
+
+        Notes
+        ----------
+        Please pay attention to the default value of startTime and endTime.
+        If both startTime and endTime are sent, the duration between startTime and endTime must 
+        be greater than 0 day and less than 90 days.
+
+        Parameters
+        ----------
+        fiat_currency : str, optional
+            The fiat currency to filter the deposit history (e.g., USD).
+        order_id : str, optional
+            The order ID to filter the deposit history.
+        offset : int, optional
+            The offset for pagination.
+        payment_channel : str, optional
+            The payment channel used for the deposit.
+        payment_method : str, optional
+            The payment method used for the deposit.
+        start_time : long, optional
+            Default to 90 days from current timestamp
+        end_time : long, optional
+            Default to current timestamp
+        recv_window : long, optional
+            Number of milliseconds after timestamp request is valid for.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = '/sapi/v1/fiatpayment/query/deposit/history'
         data = {
             'timestamp': timestamp
@@ -2199,8 +2229,22 @@ class BinanceRestAPI:
             data['recvWindow'] = recv_window
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-    def get_sub_account_depsoit_address(self, email, coin, network=None,
+    def get_sub_account_deposit_address(self, email, coin, network=None,
                                         timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to fetch a sub-account's deposit address.
+
+        Parameters
+        ----------
+        email : str
+            Sub-account Email
+        coin : str
+            coin
+        network : str, optional
+            Network (If empty, returns the default network)
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/capital/sub-account/deposit/Address"
         data = {
             'email': email,
@@ -2214,6 +2258,28 @@ class BinanceRestAPI:
     def get_sub_account_deposit_history(self, email, coin=None, status=None, start_time=None,
                                         end_time=None, limit=None, offset=None,
                                         timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to fetch sub-account deposit history.
+
+        Parameters
+        ----------
+        email : str
+            Sub-account Email
+        coin : str, optional
+            coin
+        status : int, optional
+            0 (0:pending, 6:credited but cannot withdraw, 1:success)
+        start_time : long, optional
+            Timestamp in ms to get deposits from INCLUSIVE.
+        end_time : long, optional
+            Timestamp in ms to get deposits until INCLUSIVE.
+        limit : int, optional
+            The maximum number of results to retrieve. Default is 1000.
+        offset : int, optional
+            default: 0
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/capital/sub-account/deposit/history"
         data = {
             'email': email,
@@ -2235,6 +2301,18 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     ## Convert Dust
     def convert_dust(self, from_asset, to_asset, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to convert dust assets to BNB/BTC/ETH/USDT.
+
+        Parameters
+        ----------
+        from_asset : str
+            The assets being converted. For example: fromAsset=BTC&fromAsset=ETH.
+        to_asset : str
+            To asset name, e.g. BNB, BTC, ETH, USDT.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/asset/dust"
         data = {
             'asset': from_asset,
@@ -2245,6 +2323,18 @@ class BinanceRestAPI:
         return f"POST {url_endpoint}: {result}"
     def get_convert_dust_history(self, start_time, end_time,
                                  timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get dust conversion history.
+
+        Parameters
+        ----------
+        start_time : long, optional
+            Start time
+        end_time : long, optional
+            End time
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/asset/dust-logs"
         data = {
             'startTime': start_time,
@@ -2254,6 +2344,16 @@ class BinanceRestAPI:
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
     def get_assets_that_can_be_converted(self, to_asset, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the list of assets that can be converted to BNB.
+
+        Parameters
+        ----------
+        to_asset : str
+            To asset name, e.g. BNB, BTC, ETH, USDT.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/asset/dust-assets"
         data = {
             'toAsset': to_asset,
@@ -2264,6 +2364,7 @@ class BinanceRestAPI:
     ## Referral Endpoints
     def get_referral_reward_history(self, user_biz_type, page, rows,
                                     timestamp=int(round(time.time() * 1000))):
+        
         url_endpoint = "/sapi/v1/marketing/referral/reward/history"
         data = {
             'userBizType': user_biz_type,

@@ -39,7 +39,7 @@ print(recent_trades)
 
 ### Important Notes
 
-- Currently all all responses are eitther JSON or f-strings.
+- Currently all all responses are either JSON or f-strings.
 - Store your API keys and secrets in environment variables or secure storage solutions.
 - Do not hardcode your API keys and secrets in your scripts.
 - Some functions currently do not have docstrings, they will be added soon.
