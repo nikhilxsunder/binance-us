@@ -1,5 +1,5 @@
 """
-binance_us: A simple package for connecting to the Binance US API.
+binance-us: A simple package for connecting to the Binance US API.
 """
 #Imports
 import urllib.parse

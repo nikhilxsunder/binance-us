@@ -1,4 +1,4 @@
-# binance_us 
+# binance-us 
 ## A simple package for connecting to the Binance US API.
 ## This package is still in beta please try it out and please report any comments, concerns, and issues.
 
@@ -11,7 +11,7 @@
 You can install the package using pip:
 
 ```sh
-pip install binance_us
+pip install binance-us
 ```
 
 ### Rest API Usage
