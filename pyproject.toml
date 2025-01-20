@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "binance-us"
-version = "0.0.10"
+version = "0.0.11"
 dependencies = [
 "requests"
 ]
@@ -29,6 +29,6 @@ license = {file = "LICENSE"}
 keywords = ["binance", "crypto", "api", "finance", "binance api"]
 
 [project.urls]
-Repository = "https://github.com/nikhilxsunder/binance_us"
-Issues = "https://github.com/nikhilxsunder/binance_us/issues"
+Repository = "https://github.com/nikhilxsunder/binance-us"
+Issues = "https://github.com/nikhilxsunder/binance-us/issues"
 Documentation = "https://docs.binance.us/#introduction"
