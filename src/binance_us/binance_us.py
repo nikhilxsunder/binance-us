@@ -2329,9 +2329,9 @@ class BinanceRestAPI:
         Parameters
         ----------
         start_time : long, optional
-            Start time
+            Start time.
         end_time : long, optional
-            End time
+            End time.
         timestamp : long
             Timestamp for request.
         """
@@ -2364,7 +2364,21 @@ class BinanceRestAPI:
     ## Referral Endpoints
     def get_referral_reward_history(self, user_biz_type, page, rows,
                                     timestamp=int(round(time.time() * 1000))):
-        
+        """
+        Use this endpoint to get the user's referral reward history.
+
+        Parameters
+        ----------
+        user_biz_type : int
+            user business type(0: referrer, 1: referee).
+        page : int
+            Set the number of pages, depending on the number of records and the record 
+            limit for each page. No maximum value of pages.
+        rows : int
+            min: 1, max: 200.
+        timestamp : 
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/marketing/referral/reward/history"
         data = {
             'userBizType': user_biz_type,
@@ -2376,6 +2390,14 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     ## Staking Endpoints
     def get_staking_asset_information(self, get_staking_asset=None):
+        """
+        Use this endpoint to get staking information for a supported asset (or assets).
+
+        Parameters
+        ----------
+        staking_asset : str
+            Asset symbol (e.g. BNB). If empty, returns all staking assets.
+        """
         url_endpoint = "/sapi/v1/staking/asset"
         data = {
             'timestamp': int(round(time.time() * 1000))
@@ -2386,6 +2408,18 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     def stake_asset(self, staking_asset, amount, auto_restake=None,
                     timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to stake a supported asset.
+
+        Parameters
+        ----------
+        staking_asset : str
+            Asset symbol (e.g. BNB).
+        amount : dec
+            Staking amount.
+        auto_restake : bool
+            If need auto restaking - default: true.
+        """
         url_endpoint = "/sapi/v1/staking/stake"
         data = {
             'asset': staking_asset,
@@ -2397,6 +2431,16 @@ class BinanceRestAPI:
         result = self.__binanceus_post_request(url_endpoint, data)
         return f"POST {url_endpoint}: {result}"
     def unstake_asset(self, staking_asset, amount, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to unstake a staked asset.
+        
+        Parameters
+        ----------
+        staking_asset : str
+            Asset symbol (e.g. BNB)
+        amount : dec
+            Unstaking amount
+        """
         url_endpoint = "/sapi/v1/staking/unstake"
         data = {
             'asset': staking_asset,
@@ -2406,6 +2450,14 @@ class BinanceRestAPI:
         result = self.__binanceus_post_request(url_endpoint, data)
         return f"POST {url_endpoint}: {result}"
     def get_staking_balance(self, asset, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the staking balance for an asset(or assets).
+
+        Parameters
+        ----------
+        asset : str
+            Staked asset. If empty, returns all assets with balances.
+        """
         url_endpoint = "/sapi/v1/staking/stakingBalance"
         data = {
             'asset': asset,
@@ -2413,8 +2465,25 @@ class BinanceRestAPI:
         }
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-    def get_staking_history(self, asset=None, start_time=None, end_time=None, page=None, limit=None,
-                            timestamp=int(round(time.time() * 1000))):
+    def get_staking_history(self, asset=None, start_time=None, end_time=None, page=None,
+                            limit=None,timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the staking history of an asset (or assets) within a given 
+        time range.
+
+        Parameters
+        ----------
+        asset : str
+            Asset symbol (e.g. BNB). If empty, returns all assets with history.
+        start_time : long
+            UNIX Timestamp.
+        end_time : long
+            UNIX Timestamp.
+        page : int
+            Page number - default: 1.
+        limit : int 
+            Default value: 500 (each page contains at most 500 records).
+        """
         url_endpoint = "/sapi/v1/staking/history"
         data = {
             'timestamp': timestamp
@@ -2433,6 +2502,24 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     def get_staking_rewards_history(self, asset=None, start_time=None, end_time=None, page=None,
                                     limit=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get the staking rewards history for an asset(or assets) within a given 
+        time range.
+
+        Parameters
+        ----------
+        asset : str
+            Staked asset. If empty, returns all assets with balances.
+        start_time : long
+            Start time.
+        end_time : long
+            End time.
+        page : int
+            The transfer history batch number(each batch contains at most 500 transfer 
+            history records).
+        limit : int 
+            Default value: 500. 
+        """
         url_endpoint = "/sapi/v1/staking/stakingRewardsHistory"
         data = {
             'timestamp': timestamp
@@ -2450,8 +2537,18 @@ class BinanceRestAPI:
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
     ## Credit Line Endpoints
-    def get_credt_line_account_information(self, recv_window=None,
+    def get_credit_line_account_information(self, recv_window=None,
                                            timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get current credit line account information.
+
+        Parameters
+        ----------
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v2/cl/account"
         data = {
             'timestamp': timestamp
@@ -2460,18 +2557,64 @@ class BinanceRestAPI:
             data['recvWindow'] = recv_window
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-    def get_alert_history(self, recv_window=None, timestamp=int(round(time.time() * 1000))):
+    def get_alert_history(self, start_time=None, end_time=None, limit=None, alert_type=None,
+                          recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get your margin call and liquidation alert history.
+
+        Parameters
+        ----------
+        start_time : long
+            Start time.
+        end_time : long
+            End time.
+        limit : int 
+            defaultValue:200.
+        alert_type : enum
+            AlertType(e.g., LIQUIDATION_CALL, MARGIN_CALL).
+        recv_window : long
+            The value cannot be greater than 60000
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v2/cl/alertHistory"
         data = {
             'timestamp': timestamp
         }
+        if start_time:
+            data['startTime'] = start_time
+        if end_time:
+            data['endTime'] = end_time
+        if limit:
+            data['limit'] = limit
+        if alert_type:
+            data['alertType'] = alert_type
         if recv_window:
             data['recvWindow'] = recv_window
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
     def get_transfer_history(self, start_time=None, end_time=None, limit=None, transfer_type=None,
-                             asset=None, recv_window=None,
-                             timestamp=int(round(time.time() * 1000))):
+                             asset=None, recv_window=None,timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to get your transfer history.
+
+        Parameters
+        ----------
+        start_time : long
+            Start time.
+        end_time : long
+            End time.
+        limit : int
+            defaultValue:20, max:100.
+        transfer_type : enum
+            Transfer type (e.g., TRANSFER_IN, TRANSFER_OUT).
+        asset : str
+            BTC,etc.
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v2/cl/transferHistory"
         data = {
             'timestamp': timestamp
@@ -2492,6 +2635,22 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     def execute_transfer(self, transfer_type, transfer_asset_type, quantity, recv_window=None,
                          timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to transfer assets in or out of credit line account.
+
+        Parameters
+        ----------
+        transfer_type : enum
+            Transfer type (e.g., TRANSFER_IN, TRANSFER_OUT).
+        transfer_asset_type : str
+            Asset (e.g., BTC, USD).
+        quantity : dec
+            amount of the asset to be transfered.
+        recv_wwindow : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v2/cl/transfer"
         data = {
             'transferType': transfer_type,
@@ -2506,6 +2665,18 @@ class BinanceRestAPI:
     ## API Partner Endpoints
     def check_user_eligibility(self, partner_id, recv_window=None,
                                timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to check if the user is eligible for rebate or not.
+
+        Parameters
+        ----------
+        partner_id : str
+            8 character-long ID generated for API partner, e.g. "ABCD1234".
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/apipartner/checkEligibility"
         data = {
             'partnerId': partner_id,
@@ -2517,6 +2688,26 @@ class BinanceRestAPI:
         return f"GET {url_endpoint}: {result}"
     def get_rebate_history(self, partner_id, start_time=None, end_time=None, limit=None, page=None,
                            recv_window=None, timestamp=int(round(time.time() * 1000))):
+        """
+        Use this endpoint to query the user's rebate history.
+        
+        Parameters
+        ----------
+        partner_id : str
+            8 character-long ID generated for API partner, e.g. "ABCD1234".
+        start_time : long
+            Default: 7 days before current time.
+        end_time : long
+            Default: present time.
+        limit : int
+            Default: 100, max: 1000.
+        page : int
+            Page number - default: 1.
+        recv_window : long
+            The value cannot be greater than 60000.
+        timestamp : long
+            Timestamp for request.
+        """
         url_endpoint = "/sapi/v1/apipartner/rebateHistory"
         data = {
             'partnerId': partner_id,

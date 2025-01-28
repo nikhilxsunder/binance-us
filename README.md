@@ -6,6 +6,10 @@
 [![PyPI version](https://img.shields.io/pypi/v/binance_us.svg)](https://pypi.org/project/binance_us/)
 [![Downloads](https://img.shields.io/pypi/dm/binance_us.svg)](https://pypi.org/project/binance_us/)
 
+### Latest Update
+
+- Added docstrings to remaining methods.
+
 ### Installation
 
 You can install the package using pip:
@@ -42,7 +46,7 @@ print(recent_trades)
 - Currently all all responses are either JSON or f-strings.
 - Store your API keys and secrets in environment variables or secure storage solutions.
 - Do not hardcode your API keys and secrets in your scripts.
-- Some functions currently do not have docstrings, they will be added soon.
+- Ambiguous method names will be subclassed into their respective categories in a coming update.
 
 ### Features
 
