@@ -8,7 +8,8 @@
 
 ### Latest Update
 
-- Added docstrings to remaining methods.
+- Added Custodial class and methods.
+- Updated README.md example
 
 ### Installation
 
@@ -26,11 +27,18 @@ https://docs.binance.us/
 Here is a simple example of how to use the package:
 
 ```python
+# Imports
 from binance_us import BinanceRestAPI
+from binance_us import BinanceCustodialRestAPI
 
 api_key = 'your_api_key'
 api_secret = 'your_api_secret'
+
+# REST API
 client = BinanceRestAPI(api_key, api_secret)
+
+# Custodial API
+custodial = BinanceCustodialRestAPI(api_key, secret_key)
 
 # Get exchange information
 exchange_info = client.get_exchange_information()
@@ -39,6 +47,10 @@ print(exchange_info)
 # Get recent trades
 recent_trades = client.get_recent_trades(symbol='BTCUSD')
 print(recent_trades)
+
+# Get custodial account information
+account_balance = custodial.get_account_balance(rail='CUSTODIAL_PARTNER')
+print(custodial_info)
 ```
 
 ### Important Notes
