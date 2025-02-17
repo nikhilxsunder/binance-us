@@ -1,16 +1,34 @@
 """
 binance-us: A simple package for connecting to the Binance US API.
 """
-#Imports
+# Imports
+import asyncio
+import uuid
 import urllib.parse
 import hashlib
 import hmac
 import time
 import requests
+import websockets
+import json
 
 class BinanceRestAPI:
     """
     The BinanceRestAPI class contain methods for interacting with the Binance US REST API.
+    - The base endpoint is: https://api.binance.us
+    - All endpoints return either a JSON object or array.
+    - Data is returned in ascending order: oldest first, newest last.
+    - All times for the fields of staking, referrals, airdrops, etc. are in milliseconds.
+
+    Making Requests
+    ----------
+    - For GET endpoints, parameters must be sent as a query string.
+    - For POST, PUT, and DELETE endpoints, the parameters may be sent as a query string or 
+      in the request body with content type application/x-www-form-urlencoded. You may mix 
+      parameters between both the query string and request body if you wish to do so.
+    - Parameters may be sent in any order.
+    - If a parameter is sent in both the query string and request body, the query string 
+      parameter will be used.
     """
     # Dunder Methods
     def __init__(self, api_key=None, secret_key=None):
@@ -61,7 +79,7 @@ class BinanceRestAPI:
             **data,
             "signature": signature,
         }
-        req = requests.get((self.base_url + url_endpoint), params=payload, headers=headers,
+        req = requests.post((self.base_url + url_endpoint), params=payload, headers=headers,
                            timeout=10)
         req.raise_for_status()
         return req.text
@@ -2734,7 +2752,7 @@ class BinanceCustodialRestAPI:
     The BinanceCustodialRestAPI class contain methods for interacting with the Binance US REST API 
     Custodial Endpoints.
     """
-    #Dunder Methods
+    # Dunder Methods
     def __init__(self, api_key, secret_key):
         """
         Initialize the BinanceCustodialRestAPI class that provides functions which interact with the 
@@ -2752,7 +2770,7 @@ class BinanceCustodialRestAPI:
         self.base_url = 'https://api.binance.us'
         self.api_key = api_key
         self.secret_key = secret_key
-    #Private Methods
+    # Private Methods
     def __get_binanceus_signature(self, data):
         postdata = urllib.parse.urlencode(data)
         message = postdata.encode()
@@ -2801,7 +2819,7 @@ class BinanceCustodialRestAPI:
                             timeout=10)
         req.raise_for_status()
         return req.text
-    #Public Methods
+    # Public Methods
     ## Custodial Solution Endpoints
     ### User Account Data (Custodial)
     def get_account_balance(self, rail, timestamp=int(round(time.time() * 1000))):
@@ -3525,5 +3543,76 @@ class BinanceCustodialRestAPI:
             data['page'] = page
         result = self.__binanceus_get_request(url_endpoint, data)
         return f"GET {url_endpoint}: {result}"
-#class BinanceWebSocketAPI:
+class BinanceWebSocketAPI:
+    """
+    The BinanceWebSocketAPI class contain methods for interacting with the Binance US WebSocket API 
+    Endpoints.
+
+    Making Requests
+    ----------
+    - The base endpoint is: wss://ws-api.binance.us:443/ws-api/v3
+        - If you experience issues with the standard 443 port, alternative port 9443 is also 
+          available.
+    - A single connection to the API is only valid for 24 hours; expect to be disconnected 
+      after the 24-hour mark.
+    - WebSocket server will send a ping frame every 3 minutes.
+        - If the server does not receive a ping frame response within 10 minutes, you will be 
+          disconnected.
+        - Unsolicited pong frames are allowed and will prevent disconnection.
+    - Lists are returned in chronological order, unless noted otherwise.
+    - All timestamps are in milliseconds in UTC, unless noted otherwise.
+    - All field names and values are case-sensitive, unless noted otherwise.
+    """
+    # Dunder Methods
+    def __init__(self, api_key=None, secret_key=None, port='443'):
+        self.api_key = api_key
+        self.secret_key = secret_key
+        self.port = port
+        self.base_url = 'wss://ws-api.binance.us:' + self.port + '/ws-api/v3'
+        if self.port not in {'443', '9443'}:
+            raise ValueError("Invalid port number. Valid port numbers are '443' and '9443'.")
+    # Private Methods
+    ## Blocking
+    def __generate_uuid(self):
+        result  = str(uuid.uuid4())
+        return result
+    ## Asynchronous
+    async def __send_ping(self, method, params=None, url_endpoint=None):
+        if url_endpoint:
+            url = self.base_url + url_endpoint
+        else:
+            url = self.base_url
+        identifier = self.__generate_uuid()
+        payload={
+            'id': identifier,
+            'method': method,
+        }
+        if params:
+            payload['params'] = params
+    # Public Methods
+    async def test_connectivity(self):
+        """
+        Test connectivity to the WebSocket API.
+
+        Notes
+        ----------
+        You can use regular WebSocket ping frames to test connectivity as well, WebSocket API will
+        respond with pong frames as soon as possible. ping request along with time is a safe way 
+        to test request-response handling in your application.
+        """
+        method = 'ping'
+    async def check_server_time(self):
+        """
+        Query current exchange trading rules, rate limits, and symbol information.
+
+        Notes
+        ----------
+        - Only one of symbol, symbols, permissions parameters can be specified.
+        - permissions accepts either a list of permissions, or a single permission name: "SPOT".
+        - Available Permissions.
+        """
+        method='time'
+    ## General Requests
+
+
 #class BinanceWebSocketStreams:
