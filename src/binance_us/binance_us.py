@@ -3573,46 +3573,8 @@ class BinanceWebSocketAPI:
             raise ValueError("Invalid port number. Valid port numbers are '443' and '9443'.")
     # Private Methods
     ## Blocking
-    def __generate_uuid(self):
-        result  = str(uuid.uuid4())
-        return result
     ## Asynchronous
-    async def __send_ping(self, method, params=None, url_endpoint=None):
-        if url_endpoint:
-            url = self.base_url + url_endpoint
-        else:
-            url = self.base_url
-        identifier = self.__generate_uuid()
-        payload={
-            'id': identifier,
-            'method': method,
-        }
-        if params:
-            payload['params'] = params
     # Public Methods
-    async def test_connectivity(self):
-        """
-        Test connectivity to the WebSocket API.
-
-        Notes
-        ----------
-        You can use regular WebSocket ping frames to test connectivity as well, WebSocket API will
-        respond with pong frames as soon as possible. ping request along with time is a safe way 
-        to test request-response handling in your application.
-        """
-        method = 'ping'
-    async def check_server_time(self):
-        """
-        Query current exchange trading rules, rate limits, and symbol information.
-
-        Notes
-        ----------
-        - Only one of symbol, symbols, permissions parameters can be specified.
-        - permissions accepts either a list of permissions, or a single permission name: "SPOT".
-        - Available Permissions.
-        """
-        method='time'
     ## General Requests
-
 
 #class BinanceWebSocketStreams:
